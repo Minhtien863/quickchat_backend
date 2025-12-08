@@ -4,7 +4,26 @@ import { createRequire } from 'module';
 import { pool } from '../db.js';
 
 const require = createRequire(import.meta.url);
-const serviceAccount = require('../config/firebase-service-account.json');
+
+let serviceAccount;
+
+if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+  try {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+  } catch (e) {
+    console.error('[FCM] Lỗi parse FIREBASE_SERVICE_ACCOUNT_JSON:', e);
+  }
+}
+if (!serviceAccount) {
+  try {
+    serviceAccount = require('../config/firebase-service-account.json');
+  } catch (e) {
+    console.error(
+      '[FCM] Không tìm thấy firebase-service-account.json và cũng không có FIREBASE_SERVICE_ACCOUNT_JSON'
+    );
+    throw e;
+  }
+}
 
 if (!admin.apps.length) {
   admin.initializeApp({
